@@ -311,7 +311,7 @@
                         <configuration>
                             <dataFile>${project.build.directory}/jacoco-quarkus.exec</dataFile>
                             <excludes>
-                                <exclude>com/example/marketpulse/config/**</exclude>
+                                <exclude>com/mfa/marketpulse/config/**</exclude>
                             </excludes>
                             <rules>
                                 <rule>

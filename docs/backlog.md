@@ -5,7 +5,7 @@ and `./mvnw verify` is green. Update the status column in the same PR.
 
 | ID | Item | Status |
 |---|---|---|
-| M0 | Project skeleton | todo |
+| M0 | Project skeleton | done |
 | M1 | Tick ingestion (simulator + Binance) | todo |
 | M2 | Live price SSE stream | todo |
 | M3 | Candle aggregation + persistence | todo |
