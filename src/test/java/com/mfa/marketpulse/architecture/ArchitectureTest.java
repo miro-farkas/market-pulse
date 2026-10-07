@@ -1,4 +1,4 @@
-package com.example.marketpulse.architecture;
+package com.mfa.marketpulse.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -25,7 +25,7 @@ import java.util.Set;
 @AnalyzeClasses(packages = ArchitectureTest.ROOT, importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
 
-    static final String ROOT = "com.example.marketpulse";
+    static final String ROOT = "com.mfa.marketpulse";
 
     private static final String RUN_ON_VIRTUAL_THREAD = "io.smallrye.common.annotation.RunOnVirtualThread";
     private static final String BLOCKING = "io.smallrye.common.annotation.Blocking";

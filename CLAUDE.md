@@ -16,7 +16,7 @@ Read before non-trivial work: `docs/architecture.md`, `docs/domain.md`, `docs/ad
 - Architecture rules only: `./mvnw test -Dtest=ArchitectureTest`
 
 ## Architecture (hexagonal, enforced by ArchUnit in `src/test/.../architecture/ArchitectureTest.java`)
-Base package `com.example.marketpulse`:
+Base package `com.mfa.marketpulse`:
 - `domain..` – records, value objects, pure domain logic (e.g. `CandleAggregator`, `AlertRuleEvaluator`).
   Plain Java only: no Quarkus, Mutiny, Jakarta, Jackson, Hibernate, Kafka.
 - `application..` – use cases + ports (`port.in`, `port.out`). May use Mutiny, CDI (`jakarta.enterprise`,
