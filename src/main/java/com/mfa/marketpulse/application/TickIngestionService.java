@@ -93,7 +93,10 @@ public class TickIngestionService implements IngestTicksUseCase {
         Cancellable current = subscription.getAndSet(null);
         if (current != null) {
             current.cancel();
-            Log.infof("Stopped tick ingestion: %s", stats());
+            var stats = stats();
+            Log.infof(
+                    "Stopped tick ingestion: published %d, dropped %d, failed %d",
+                    stats.published(), stats.dropped(), stats.failed());
         }
     }
 
