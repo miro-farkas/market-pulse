@@ -96,8 +96,9 @@ flowchart LR
 | GET | `/api/reports/portfolios/{id}` | `@RunOnVirtualThread` | deliberate blocking contrast |
 | GET | `/q/health`, `/q/metrics`, `/q/openapi`, `/q/swagger-ui` | Quarkus | ops |
 
-Errors: RFC 7807 `application/problem+json`. SSE streams send a final error event before completing on
-server-side failure.
+Errors: RFC 7807 `application/problem+json` (`ProblemExceptionMappers`): validation errors → 400 with
+`violations[{field, message}]`; `WebApplicationException` → its status; anything else → 500 with a logged
+reference id and no internals. SSE streams send a final error event before completing on server-side failure.
 
 ## 5. Kafka topics
 
@@ -116,7 +117,19 @@ At-least-once delivery; consumers are idempotent.
 ## 6. Data model (PostgreSQL)
 
 `portfolio`, `holding`, `alert_rule`, `alert` (history), `candle` (PK symbol + open_time), `outbox`.
-Owned exclusively by this service; schema via Flyway only.
+Owned exclusively by this service; schema via Flyway only (`V1__init.sql`).
+
+| Table | Key | Notes |
+|---|---|---|
+| `portfolio` | `id` uuid | `owner` (demo user header value), `name`, `created_at`, `updated_at`, `version` (optimistic lock) |
+| `holding` | `id` uuid | FK `portfolio_id` (cascade), `symbol`, `quantity > 0`; unique `(portfolio_id, symbol)` |
+| `alert_rule` | `id` uuid | FK `portfolio_id` (cascade), `symbol`, `type`; `threshold` for `PRICE_*`, `percent` + `window_seconds` for `PERCENT_CHANGE` (check constraint); `cooldown_seconds` (default 60), `enabled` |
+| `alert` | `id` uuid | `event_id` unique (idempotent insert), FK `rule_id` (set null on delete, history survives), FK `portfolio_id` (cascade), `symbol`, `price`, `triggered_at` |
+| `candle` | `(symbol, open_time)` | `close_time`, OHLC, `volume >= 0`, `trade_count`; check `low <= open, close <= high` |
+| `outbox` | `id` uuid (= eventId) | `aggregate_type`, `aggregate_id`, `event_type`, `payload` jsonb, `occurred_at`, `published_at` (null = pending; partial index) |
+
+Prices and quantities are unconstrained `numeric` (keeps the exchange scale); symbols are checked uppercase;
+times are `timestamptz`.
 
 ## 7. Cross-cutting
 - **Configuration**: `@ConfigMapping(prefix = "market-pulse")`; prod values from env vars.
