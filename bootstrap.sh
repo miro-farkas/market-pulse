@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-time setup: Maven wrapper, formatting, git init, GitHub repo, branch protection.
 # Usage: ./bootstrap.sh [repo-name] [--private]
-# Requires: JDK 21, Maven 3.9+, Docker (for tests), gh CLI authenticated (gh auth login).
+# Requires: JDK 25, Maven 3.9+, Docker (for tests), gh CLI authenticated (gh auth login).
 set -euo pipefail
 
 REPO=${1:-market-pulse}
