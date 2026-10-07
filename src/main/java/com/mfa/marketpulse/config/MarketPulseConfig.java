@@ -1,10 +1,13 @@
 package com.mfa.marketpulse.config;
 
 import io.smallrye.config.ConfigMapping;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 
@@ -20,6 +23,10 @@ public interface MarketPulseConfig {
     Sse sse();
 
     Outbox outbox();
+
+    Ingestion ingestion();
+
+    Simulator simulator();
 
     enum Source {
         BINANCE,
@@ -40,6 +47,9 @@ public interface MarketPulseConfig {
             Duration initialBackoff();
 
             Duration maxBackoff();
+
+            /** Random spread applied to each backoff delay (0 = none, 1 = up to ±100 %). */
+            @DecimalMin("0.0") @DecimalMax("1.0") double jitter();
         }
     }
 
@@ -54,5 +64,21 @@ public interface MarketPulseConfig {
         Duration pollInterval();
 
         @Positive int batchSize();
+    }
+
+    interface Ingestion {
+
+        /** Publishes waiting for Kafka acknowledgement at the same time; further ticks are dropped. */
+        @Positive int maxInFlight();
+    }
+
+    /** Synthetic random-walk ticks, used when {@code source=simulator} (ADR-0006). */
+    interface Simulator {
+
+        /** Ticks per second for each symbol. */
+        @Positive int ticksPerSecond();
+
+        /** Starting price for every symbol. */
+        @Positive BigDecimal initialPrice();
     }
 }
