@@ -1,7 +1,7 @@
 # market-pulse
 
 Reactive, event-driven demo backend: live crypto market data → Kafka → stream processing → reactive SSE APIs.
-Java 21 · Quarkus · Mutiny · Kafka (SmallRye Reactive Messaging) · Hibernate Reactive · PostgreSQL.
+Java 25 · Quarkus · Mutiny · Kafka (SmallRye Reactive Messaging) · Hibernate Reactive · PostgreSQL.
 
 - Architecture: [docs/architecture.md](docs/architecture.md)
 - Domain: [docs/domain.md](docs/domain.md)
@@ -9,7 +9,7 @@ Java 21 · Quarkus · Mutiny · Kafka (SmallRye Reactive Messaging) · Hibernate
 - Backlog: [docs/backlog.md](docs/backlog.md)
 
 ## Prerequisites
-JDK 21, Maven 3.9+, Docker (Dev Services start Kafka and PostgreSQL), `gh` CLI, Claude Code.
+JDK 25, Maven 3.9+, Docker (Dev Services start Kafka and PostgreSQL), `gh` CLI, Claude Code.
 
 ## First-time setup
 ```bash
