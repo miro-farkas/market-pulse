@@ -3,7 +3,7 @@
 ## 1. Goals and non-goals
 
 **Goals**
-- Demonstrate reactive end-to-end processing (Mutiny, backpressure, cancellation) on Quarkus / Java 21.
+- Demonstrate reactive end-to-end processing (Mutiny, backpressure, cancellation) on Quarkus / Java 25 (ADR-0007).
 - Demonstrate event-driven architecture with Kafka: ingestion, stream processing, fan-out, outbox.
 - Combine three data sources into live client streams: external push stream (exchange), Kafka, PostgreSQL.
 - Show a deliberate, documented boundary where virtual threads are the better tool (ADR-0002).

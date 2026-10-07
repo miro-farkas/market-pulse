@@ -4,7 +4,7 @@ Reactive, event-driven demo backend: live crypto market data (Binance WebSocket)
 stream processing (candles, alerts, portfolio valuation) → reactive SSE endpoints.
 Purpose is to *demonstrate* reactive + event-driven architecture, so clarity of design beats feature count.
 
-Stack: Java 21, Quarkus 3.40, Mutiny, Quarkus REST (SSE), SmallRye Reactive Messaging (Kafka),
+Stack: Java 25, Quarkus 3.40, Mutiny, Quarkus REST (SSE), SmallRye Reactive Messaging (Kafka),
 Hibernate Reactive Panache + reactive PG client, Flyway, WebSockets Next (client), Maven.
 
 Read before non-trivial work: `docs/architecture.md`, `docs/domain.md`, `docs/adr/`, `docs/backlog.md`.
