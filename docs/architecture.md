@@ -45,12 +45,24 @@ flowchart LR
 ```
 
 ### 3.1 Ingestion
-- `ExchangeStreamClient` (WebSockets Next client) subscribes to the combined stream for configured symbols
-  (`market-pulse.exchange.symbols`). Messages are mapped to domain `Tick` records.
-- The connection is expected to drop (exchange closes connections after ~24 h, network failures):
-  reconnect with exponential backoff and jitter; expose connection state via health check.
-- Ticks are emitted to `market.ticks` keyed by symbol. Under overload, ingestion drops the oldest ticks
-  rather than buffering unboundedly (ticks are superseded quickly; candles stay correct enough for a demo).
+- `TickIngestionService` (application) starts on CDI `Startup`, takes `Multi<Tick>` from the
+  `MarketDataSource` port for the configured symbols (`market-pulse.exchange.symbols`) and publishes each tick
+  through the `TickPublisher` port. `market-pulse.source` selects the source at runtime (`MarketDataSourceProducer`):
+  - `binance`: `BinanceMarketDataSource` (WebSockets Next client) connects to `{ws-url}/ws`, sends `SUBSCRIBE`
+    for `<symbol>@trade` and maps frames to `Tick` (`BinanceTradeMapper`; invalid frames are skipped).
+  - `simulator`: `SimulatedMarketDataSource`, a random walk per symbol at `simulator.ticks-per-second`. Used by
+    the `test` profile and for offline work (`-Dquarkus.profile=dev,simulator`).
+- The connection is expected to drop (exchange closes connections after ~24 h, network failures). A close, an
+  error, or no frame for `exchange.stale-timeout` (half-open connection, e.g. after the host slept) fails the
+  connection's `Multi`; `retry().withBackOff(initial, max).withJitter(j)` reconnects and resubscribes.
+  Mutiny's backoff does not reset after a successful connection, so after several drops reconnects wait up to
+  `max-backoff`.
+- Readiness check `exchange-connection`: UP while connected (always UP with the simulator); its data shows the
+  state, the number of connects and the time of the last frame.
+- Ticks are emitted to `market.ticks` keyed by symbol (`KafkaTickPublisher`, channel `market-ticks`). At most
+  `ingestion.max-in-flight` publishes wait for acknowledgement; when all are busy, newly arriving ticks are
+  dropped and counted (`onOverflow().drop()`) rather than buffered (ticks are superseded quickly; candles stay
+  correct enough for a demo). A failed publish is counted and skipped; ingestion continues.
 
 ### 3.2 Stream processing (Kafka consumers, shared consumer groups)
 - **Candles**: aggregate ticks into 1-minute OHLCV per symbol (`domain.CandleAggregator`, pure Java).
@@ -112,6 +124,9 @@ reference id and no internals. SSE streams send a final error event before compl
 | `<topic>.dlq` | original | original + error headers | SmallRye DLQ strategy | manual inspection | 1 |
 
 Conventions: JSON payloads, event records carry `eventId` (UUID, for idempotency), `occurredAt`, `version`.
+
+`TickEvent` v1: `{"eventId": "<uuid>", "version": 1, "occurredAt": "<trade time, ISO-8601>", "symbol": "BTCUSDT",
+"price": "62012.34000000", "quantity": "0.00150000"}`. Price and quantity are strings to keep the exchange scale.
 At-least-once delivery; consumers are idempotent.
 
 ## 6. Data model (PostgreSQL)
