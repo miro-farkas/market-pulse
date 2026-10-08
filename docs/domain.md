@@ -36,3 +36,6 @@
 - Holdings and rules may only reference configured symbols.
 - Deleting a portfolio deletes its holdings and rules (and emits change events).
 - Candle invariant: low ≤ open, close ≤ high; volume ≥ 0.
+- Tick invariant: price > 0, quantity > 0, all fields present. Invalid exchange trades are skipped at the
+  adapter boundary and never published.
+- Symbol format: `[A-Z0-9]+`. `Symbol.of(...)` normalizes case (exchanges use lowercase in stream names).
