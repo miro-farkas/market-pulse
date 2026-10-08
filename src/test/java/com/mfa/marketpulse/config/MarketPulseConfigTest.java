@@ -19,6 +19,7 @@ class MarketPulseConfigTest {
         assertThat(config.source()).isEqualTo(MarketPulseConfig.Source.SIMULATOR);
         assertThat(config.exchange().wsUrl()).isEqualTo("wss://data-stream.binance.vision");
         assertThat(config.exchange().symbols()).containsExactly("BTCUSDT", "ETHUSDT", "SOLUSDT");
+        assertThat(config.exchange().staleTimeout()).isEqualTo(Duration.ofSeconds(30));
         assertThat(config.exchange().reconnect().initialBackoff()).isEqualTo(Duration.ofSeconds(1));
         assertThat(config.exchange().reconnect().maxBackoff()).isEqualTo(Duration.ofSeconds(30));
         assertThat(config.exchange().reconnect().jitter()).isEqualTo(0.2);

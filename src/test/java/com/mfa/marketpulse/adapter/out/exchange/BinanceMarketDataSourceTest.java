@@ -28,6 +28,8 @@ class BinanceMarketDataSourceTest {
             return Map.of(
                     "market-pulse.source", "binance",
                     "market-pulse.exchange.ws-url", "ws://localhost:${quarkus.http.test-port:8081}/fake-binance",
+                    // The fake server goes silent after each burst of trades.
+                    "market-pulse.exchange.stale-timeout", "3s",
                     "market-pulse.exchange.reconnect.initial-backoff", "50ms",
                     "market-pulse.exchange.reconnect.max-backoff", "200ms");
         }
@@ -47,11 +49,28 @@ class BinanceMarketDataSourceTest {
 
         FakeBinanceServer.dropAllConnections();
 
-        subscriber.awaitItems(2 * FakeBinanceServer.TRADES_PER_SUBSCRIBE, Duration.ofSeconds(10));
+        // Well before the 3 s stale timeout: the close itself triggered the reconnect.
+        subscriber.awaitItems(2 * FakeBinanceServer.TRADES_PER_SUBSCRIBE, Duration.ofMillis(2500));
         subscriber.assertNotTerminated();
         assertThat(FakeBinanceServer.OPENED.get()).isGreaterThan(openedBefore);
         assertThat(subscriber.getItems())
                 .allSatisfy(tick -> assertThat(tick.symbol()).isEqualTo(new Symbol("BTCUSDT")));
+        subscriber.cancel();
+    }
+
+    @Test
+    void reconnectsWhenConnectionGoesSilent() {
+        // Half-open connection: the server sends one burst, then nothing, and never closes.
+        var subscriber = source.ticks(Set.of(new Symbol("BTCUSDT")))
+                .subscribe()
+                .withSubscriber(AssertSubscriber.<Tick>create(Long.MAX_VALUE));
+        subscriber.awaitItems(FakeBinanceServer.TRADES_PER_SUBSCRIBE, Duration.ofSeconds(10));
+        int openedBefore = FakeBinanceServer.OPENED.get();
+
+        subscriber.awaitItems(2 * FakeBinanceServer.TRADES_PER_SUBSCRIBE, Duration.ofSeconds(10));
+
+        subscriber.assertNotTerminated();
+        assertThat(FakeBinanceServer.OPENED.get()).isGreaterThan(openedBefore);
         subscriber.cancel();
     }
 

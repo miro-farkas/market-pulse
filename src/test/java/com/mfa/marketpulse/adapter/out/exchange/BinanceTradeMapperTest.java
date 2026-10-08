@@ -30,6 +30,17 @@ class BinanceTradeMapperTest {
     }
 
     @Test
+    void mapsFrameRecordedFromLiveStream() {
+        // Captured from wss://data-stream.binance.vision on 2026-10-07
+        assertThat(mapper.map(sample("trade-recorded.json")))
+                .contains(new Tick(
+                        new Symbol("BTCUSDT"),
+                        new BigDecimal("83432.01000000"),
+                        new BigDecimal("0.00011000"),
+                        Instant.ofEpochMilli(1791406812673L)));
+    }
+
+    @Test
     void ignoresSubscriptionReply() {
         assertThat(mapper.map(sample("subscribe-response.json"))).isEmpty();
     }

@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p>Each subscription opens one connection to {@code {ws-url}/ws} and sends {@code SUBSCRIBE} for the symbols' trade
  * streams. When the connection closes or fails, the {@code Multi} fails and {@code retry().withBackOff(...)}
- * reconnects and resubscribes. Cancelling the subscription closes the connection.
+ * reconnects and resubscribes. A connection that stays silent for {@code stale-timeout} is treated as lost too,
+ * because a half-open TCP connection (e.g. after the host slept) never reports a close. Cancelling the subscription
+ * closes the connection.
  */
 @ApplicationScoped
 @Typed(BinanceMarketDataSource.class)
@@ -60,6 +62,11 @@ public class BinanceMarketDataSource implements MarketDataSource {
         var reconnect = config.reconnect();
         return Multi.createFrom()
                 .<String>emitter(emitter -> connect(List.copyOf(symbols), emitter), BackPressureStrategy.DROP)
+                // A silent connection is treated like a closed one: fail, close it, reconnect.
+                .ifNoItem()
+                .after(config.staleTimeout())
+                .failWith(() -> new ExchangeConnectionLostException(
+                        "no message for " + config.staleTimeout() + ", connection presumed dead"))
                 .onFailure()
                 .invoke(failure ->
                         Log.warnf("Binance stream lost (%s), reconnecting with backoff", failure.getMessage()))

@@ -40,6 +40,12 @@ public interface MarketPulseConfig {
         /** Trading pairs to subscribe to, uppercase (e.g. {@code BTCUSDT}). */
         @NotEmpty List<@Pattern(regexp = "[A-Z0-9]+", message = "must be an uppercase symbol") String> symbols();
 
+        /**
+         * Reconnect when no frame arrives for this long. Catches half-open connections (laptop sleep, NAT timeout)
+         * that never report a close.
+         */
+        Duration staleTimeout();
+
         Reconnect reconnect();
 
         interface Reconnect {
